@@ -28,3 +28,26 @@ export const getDateRange = (days: number) => {
     from: fromDate.toISOString().split('T')[0],
   };
 }
+
+export function validateArticle(article: RawNewsArticle): boolean {
+  return !!(article.headline && article.summary && article.url && article.source && article.datetime);
+}
+
+export function formatArticle(
+  article: RawNewsArticle,
+  isCompanyNews: boolean,
+  symbol?: string,
+  index?: number
+): MarketNewsArticle {
+  return {
+    id: index || 0,
+    headline: article.headline || '',
+    summary: article.summary || '',
+    url: article.url || '',
+    source: article.source || '',
+    datetime: article.datetime || 0,
+    image: article.image,
+    category: article.category || (isCompanyNews ? 'company' : 'general'),
+    related: article.related || symbol || '',
+  };
+}
