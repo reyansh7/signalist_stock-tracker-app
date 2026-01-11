@@ -5,14 +5,16 @@ import { CommandDialog, CommandEmpty, CommandInput, CommandList } from "@/compon
 import {Button} from "@/components/ui/button";
 import {Loader2,  Star,  TrendingUp} from "lucide-react";
 import Link from "next/link";
-import {searchStocks} from "@/lib/actions/finnhub.actions";
-import {useDebounce} from "@/hooks/useDebounce";
+import { searchStocks } from "@/lib/actions/finnhub.actions";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useWatchlist } from "@/hooks/useWatchlist";
 
-export default function SearchCommand({ renderAs = 'button', label = 'Add stock', initialStocks }: SearchCommandProps) {
+export default function SearchCommand({ renderAs = 'button', label = 'Add stock', initialStocks = [] }: SearchCommandProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const { isInWatchlist, toggle } = useWatchlist();
   const [loading, setLoading] = useState(false)
-  const [stocks, setStocks] = useState<StockWithWatchlistStatus[]>(initialStocks);
+  const [stocks, setStocks] = useState<StockWithWatchlistStatus[]>(initialStocks || []);
 
   const isSearchMode = !!searchTerm.trim();
   const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
@@ -29,7 +31,7 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
   }, [])
 
   const handleSearch = async () => {
-    if(!isSearchMode) return setStocks(initialStocks);
+    if(!isSearchMode) return setStocks(initialStocks || []);
 
     setLoading(true)
     try {
@@ -51,7 +53,7 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
   const handleSelectStock = () => {
     setOpen(false);
     setSearchTerm("");
-    setStocks(initialStocks);
+    setStocks(initialStocks || []);
   }
 
   return (
@@ -76,7 +78,9 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
             placeholder="Search stocks..." 
             className="h-12 px-4 text-base border-none bg-transparent focus:ring-0" 
           />
-          {loading && <Loader2 className="absolute right-4 top-3.5 h-5 w-5 animate-spin text-gray-400" />}
+          <div className="absolute right-3 top-2.5 flex items-center gap-2">
+            {loading && <Loader2 className="h-5 w-5 animate-spin text-gray-400" />}
+          </div>
         </div>
         <CommandList className="max-h-100 overflow-y-auto px-2 pb-2">
           {loading ? (
@@ -107,7 +111,13 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
                         {stock.symbol} | {stock.exchange} | {stock.type}
                       </div>
                     </div>
-                    <Star />
+                    <Star
+                      className={`h-4 w-4 ${
+                        isInWatchlist(stock.symbol)
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-500"
+                      }`}
+                    />
                   </Link>
                   
                 ))}
