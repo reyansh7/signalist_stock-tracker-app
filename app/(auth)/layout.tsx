@@ -1,8 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import React from 'react'
+import { auth } from '@/lib/better-auth/auth'
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 
-const layout = ({children}:{children:React.ReactNode}) => {
+const layout = async ({children}:{children:React.ReactNode}) => {
+    const session=await auth.api.getSession({headers:await headers()});
+    if(session?.user) redirect('/');
   return (
     <main className='min-h-screen flex'>
         <section className='flex-1 flex flex-col px-6 py-8 lg:px-12 lg:py-12 bg-[#0f0f0f] overflow-y-auto'>

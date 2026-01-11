@@ -6,7 +6,11 @@ import SelectField from '@/components/forms/SelectField';
 import { INVESTMENT_GOALS, PREFERRED_INDUSTRIES, RISK_TOLERANCE_OPTIONS } from '@/lib/constants';
 import { CountrySelectField } from '@/components/forms/CountrySelect';
 import FooterLink from '@/components/forms/FooterLink';
-
+import { sign } from 'crypto';
+import { useRouter } from 'next/navigation';
+import { signUpWithEmail } from '@/lib/actions/auth.actions';
+import { toast } from 'sonner';
+import { error } from 'better-auth/api';
 interface SignUpFormData {
   fullName: string;
   email: string;
@@ -18,6 +22,7 @@ interface SignUpFormData {
 }
 
 const SignUp = () => {
+    const router=useRouter();
     const {
     register,
     handleSubmit,
@@ -37,9 +42,26 @@ const SignUp = () => {
   );
   const onSubmit: (data: SignUpFormData) => Promise<void> = async(data:SignUpFormData) => {
     try{
-        console.log('Sign-up data:', data);
+        const result = await signUpWithEmail(data);
+        
+        if(result?.success) {
+            toast.success('Account created successfully!', {
+                description: 'Welcome to Signalist. Redirecting to dashboard...'
+            });
+            // Small delay to show toast before redirect
+            setTimeout(() => {
+                router.push('/');
+            }, 500);
+        } else {
+            toast.error('Sign-up failed', {
+                description: result?.error || 'Failed to create an account.'
+            });
+        }
     } catch(e){
         console.error('Sign-up error:', e);
+        toast.error('Sign-up failed',{
+            description: e instanceof Error ? e.message : 'An unexpected error occurred.'
+        });
     }
   }
   return (
